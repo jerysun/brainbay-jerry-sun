@@ -26,14 +26,14 @@ public class MemoryCacheHelper : IMemoryCacheHelper
         return result;
     }
 
-    public async Task<TResult?> GetOrCreateAsync<TResult>(string cacheKey, Func<ICacheEntry, Task<TResult?>> valueFactory, int baseExpireSeconds = 60)
+    public async Task<(TResult? result, bool)> GetOrCreateAsync<TResult>(string cacheKey, Func<ICacheEntry, Task<TResult?>> valueFactory, int baseExpireSeconds = 60)
     {
-        if (_memoryCache.TryGetValue(cacheKey, out TResult? result)) return result;
+        if (_memoryCache.TryGetValue(cacheKey, out TResult? result)) return (result, true);
         using ICacheEntry entry = _memoryCache.CreateEntry(cacheKey);
         InitCacheEntry(entry, baseExpireSeconds);
         result = (await valueFactory(entry))!;
         entry.Value = result;
-        return result;
+        return (result, false);
     }
 
     public void Remove(string cacheKey)

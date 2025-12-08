@@ -23,7 +23,7 @@ public class CharactersController : ControllerBase
     {
         var result = await _sender.Send(new GetCharactersQuery(request));
         var response = result.Adapt<GetCharactersResponse>();
-        HttpContext.Response.Headers.Append("from-database", "true");
+        HttpContext.Response.Headers.Append("from-database", result.fromCache ? "false" : "true");
         return Ok(response);
     }
 

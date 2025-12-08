@@ -16,7 +16,7 @@ public class GetCharactersHandler(ICharacterContext dbContext, IMemoryCacheHelpe
 
         var totalCount = await dbContext.Characters.LongCountAsync(cancellationToken);
 
-        var characters = await memCache.GetOrCreateAsync("AllCharacters", async (e) =>
+        var (characters, fromCache) = await memCache.GetOrCreateAsync("AllCharacters", async (e) =>
                 await dbContext.Characters
                     .AsNoTracking()
                     .OrderBy(c => c.Id)
@@ -30,6 +30,6 @@ public class GetCharactersHandler(ICharacterContext dbContext, IMemoryCacheHelpe
                 pageIndex,
                 pageSize,
                 totalCount,
-                characters));
+                characters), fromCache);
     }
 }

@@ -3,4 +3,4 @@ using Characters.Domain.Models;
 
 namespace Characters.Application.Characters.GetCharacters;
 
-public record GetCharactersResult(PaginatedResult<Character> Characters);
+public record GetCharactersResult(PaginatedResult<Character> Characters, bool fromCache);
