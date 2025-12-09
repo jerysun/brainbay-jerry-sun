@@ -1,10 +1,10 @@
 using Characters.API.Controllers.Characters;
 using Characters.Application.Characters.AddCharacter;
 using Characters.Application.Characters.GetCharacters;
+using Characters.Application.Characters.GetCharactersByPlanet;
 using Characters.Application.Dtos;
 using Characters.Commons.Pagination;
 using Characters.Domain.Models;
-using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -75,7 +75,8 @@ public class CharactersTest
             }
         };
         var paginatedResult = new PaginatedResult<Character>(0, 10, 2, characters);
-        var getCharactersResult = new GetCharactersResult(paginatedResult);
+        bool fromCache = false;
+        var getCharactersResult = new GetCharactersResult(paginatedResult, fromCache);
 
         _mockSender
             .Setup(x => x.Send(It.IsAny<GetCharactersQuery>(), It.IsAny<CancellationToken>()))
@@ -101,7 +102,8 @@ public class CharactersTest
         // Arrange
         var paginationRequest = new PaginationRequest(PageIndex: 0, PageSize: 10);
         var paginatedResult = new PaginatedResult<Character>(0, 10, 0, new List<Character>());
-        var getCharactersResult = new GetCharactersResult(paginatedResult);
+        bool fromCache = false;
+        var getCharactersResult = new GetCharactersResult(paginatedResult, fromCache);
 
         _mockSender
             .Setup(x => x.Send(It.IsAny<GetCharactersQuery>(), It.IsAny<CancellationToken>()))
@@ -121,7 +123,8 @@ public class CharactersTest
         // Arrange
         var paginationRequest = new PaginationRequest(PageIndex: 0, PageSize: 10);
         var paginatedResult = new PaginatedResult<Character>(0, 10, 0, new List<Character>());
-        var getCharactersResult = new GetCharactersResult(paginatedResult);
+        bool fromCache = false;
+        var getCharactersResult = new GetCharactersResult(paginatedResult, fromCache);
 
         _mockSender
             .Setup(x => x.Send(It.IsAny<GetCharactersQuery>(), It.IsAny<CancellationToken>()))
@@ -135,6 +138,89 @@ public class CharactersTest
         var response = okResult.Value as GetCharactersResponse;
         Assert.NotNull(response);
         Assert.Empty(response.Characters.Data);
+    }
+
+    #endregion
+
+    #region GetCharactersByPlanet Tests
+
+    [Fact]
+    public async Task GetCharactersByPlanet_WithValidRequest_ReturnsOkResultWithCharacters()
+    {
+        // Arrange
+        var request = new GetCharactersByPlanetRequest(0, 10, "Earth");
+        var characters = new List<Character>
+        {
+            new Character {
+                Id = 1,
+                Name = "Jerry Sun",
+                Status = "Alive",
+                Species = "Human",
+                Type = "Human with ant in eyes",
+                Gender = "Male",
+                Origin = new Origin { Name = "Earth (C-137)", Url = "https://rickandmortyapi.com/api/location/1" },
+                Location = new Location { Name = "Citadel of Ricks", Url = "https://rickandmortyapi.com/api/location/3" },
+                Image = "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
+                Episode = new[] { "https://rickandmortyapi.com/api/episode/1", "https://rickandmortyapi.com/api/episode/2" },
+                Url = "https://rickandmortyapi.com/api/character/1",
+                Created = DateTime.UtcNow
+            },
+            new Character {
+                Id = 2,
+                Name = "Peter pan",
+                Status = "Alive",
+                Species = "Human",
+                Type = "Human with tattoo",
+                Gender = "Male",
+                Origin = new Origin { Name = "Earth (C-137)", Url = "https://rickandmortyapi.com/api/location/1" },
+                Location = new Location { Name = "Citadel of Ricks", Url = "https://rickandmortyapi.com/api/location/3" },
+                Image = "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
+                Episode = new[] { "https://rickandmortyapi.com/api/episode/1", "https://rickandmortyapi.com/api/episode/2" },
+                Url = "https://rickandmortyapi.com/api/character/1",
+                Created = DateTime.UtcNow
+            }
+        };
+        var paginatedResult = new PaginatedResult<Character>(0, 10, 2, characters);
+        var fromCache = false;
+        var getCharactersByPlanetResult = new GetCharactersByPlanetResult(paginatedResult, fromCache);
+
+        _mockSender
+            .Setup(x => x.Send(It.IsAny<GetCharactersByPlanetQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(getCharactersByPlanetResult);
+
+        // Act
+        var result = await _controller.GetCharactersByPlanet(request);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.NotNull(okResult.Value);
+        var response = okResult.Value as GetCharactersByPlanetResponse;
+        Assert.NotNull(response);
+        Assert.Equal(2, response.Characters.Data.Count());
+        _mockSender.Verify(
+            x => x.Send(It.IsAny<GetCharactersByPlanetQuery>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCharactersByPlanet_WithValidRequest_SetsFromDatabaseHeader()
+    {
+        // Arrange
+        var request = new GetCharactersByPlanetRequest(0, 10, "Earth");
+        var paginatedResult = new PaginatedResult<Character>(0, 10, 0, new List<Character>());
+        var fromCache = false;
+        var getCharactersByPlanetResult = new GetCharactersByPlanetResult(paginatedResult, fromCache);
+
+        _mockSender
+            .Setup(x => x.Send(It.IsAny<GetCharactersByPlanetQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(getCharactersByPlanetResult);
+
+        // Act
+        await _controller.GetCharactersByPlanet(request);
+
+        // Assert
+        Assert.True(_controller.HttpContext.Response.Headers.ContainsKey("from-database"));
+        Assert.Equal("true", _controller.HttpContext.Response.Headers["from-database"].ToString());
     }
 
     #endregion

@@ -1,9 +1,3 @@
-using Characters.Application.Data;
-using Characters.Commons.MemoryCache;
-using Characters.Commons.Pagination;
-using Characters.Domain.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace Characters.Application.Characters.GetCharacters;
 
 public class GetCharactersHandler(ICharacterContext dbContext, IMemoryCacheHelper memCache)

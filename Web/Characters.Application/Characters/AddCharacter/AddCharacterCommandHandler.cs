@@ -1,6 +1,3 @@
-using Characters.Application.Data;
-using Characters.Commons.MemoryCache;
-
 namespace Characters.Application.Characters.AddCharacter;
 
 public class AddCharacterCommandHandler(ICharacterContext dbContext, IMemoryCacheHelper memCache) : ICommandHandler<AddCharacterCommand, Character>

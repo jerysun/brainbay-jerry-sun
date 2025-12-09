@@ -1,5 +1,6 @@
 using Characters.Application.Characters.AddCharacter;
 using Characters.Application.Characters.GetCharacters;
+using Characters.Application.Characters.GetCharactersByPlanet;
 using Characters.Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,7 +24,7 @@ public class CharactersController : ControllerBase
     {
         var result = await _sender.Send(new GetCharactersQuery(request));
         var response = result.Adapt<GetCharactersResponse>();
-        HttpContext.Response.Headers.Append("from-database", result.fromCache ? "false" : "true");
+        HttpContext.Response.Headers.Append("from-database", result.FromCache ? "false" : "true");
         return Ok(response);
     }
 
@@ -38,5 +39,17 @@ public class CharactersController : ControllerBase
         var response = result.Adapt<Character>();
 
         return Created($"/characters/{response.Id}", response);
+    }
+
+    [HttpGet("planet")]
+    [ProducesResponseType(typeof(GetCharactersByPlanetResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<GetCharactersByPlanetResponse>> GetCharactersByPlanet([FromQuery]GetCharactersByPlanetRequest request)
+    {
+        var paginationRequest = new PaginationRequest(request.PageIndex, request.PageSize);
+        var result = await _sender.Send(new GetCharactersByPlanetQuery(paginationRequest, request.Planet));
+        var response = result.Adapt<GetCharactersByPlanetResponse>();
+        HttpContext.Response.Headers.Append("from-database", result.FromCache ? "false" : "true");
+        return Ok(response);
     }
 }
