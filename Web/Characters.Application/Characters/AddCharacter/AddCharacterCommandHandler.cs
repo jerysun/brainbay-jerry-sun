@@ -7,7 +7,7 @@ public class AddCharacterCommandHandler(ICharacterContext dbContext, IMemoryCach
         var character = command.CharacterDto.Adapt<Character>();
         dbContext.Characters.Add(character);
         await dbContext.SaveChangesAsync(cancellationToken);
-        memCache.Remove("AllCharacters");
+        memCache.ClearAll();
 
         return character;
     }

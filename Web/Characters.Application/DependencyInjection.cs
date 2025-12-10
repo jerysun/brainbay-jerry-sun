@@ -18,7 +18,7 @@ public static class DependencyInjection
         });
 
         services.AddMemoryCache();
-        services.AddScoped<IMemoryCacheHelper, MemoryCacheHelper>();
+        services.AddSingleton<IMemoryCacheHelper, MemoryCacheHelper>();
 
         return services;
     }

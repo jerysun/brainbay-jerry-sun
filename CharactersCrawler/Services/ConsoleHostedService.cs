@@ -102,7 +102,7 @@ public class ConsoleHostedService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError("An error occurred: {exMessage}", ex.Message);
+            _logger.LogError("An error occurred: {exMessage}", ex.StackTrace);
         }
 
         return characterDtos;
